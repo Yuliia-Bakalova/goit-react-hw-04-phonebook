@@ -1,86 +1,75 @@
-import React, { Component } from 'react';
+import { useState, useEffect } from 'react';
 import { nanoid } from 'nanoid';
 import { ContactList } from './ContactList/ContactList';
 import { ContactForm } from './ContactForm/ContactForm';
 import { Filter } from './Filter/Filter';
 import { Container, Title } from './App.styled';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
+import { LS_KEY_CONTACTS } from 'constans/ConstansKey';
+import { localStorageGetItem, localStorageSetItem } from 'utils/useLocalStorage';
 
-class App extends Component {
-    state = {
-        
-        contacts: [
-            { id: 'id-1', name: 'Rosie Simpson', number: '459-12-56' },
-            { id: 'id-2', name: 'Hermione Kline', number: '443-89-12' },
-            { id: 'id-3', name: 'Eden Clements', number: '645-17-79' },
-            { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
-        ],    
-    filter: '',
-    };
+export const App = () => {
+  const [contacts, setContacts] = useState(() => {
+    return (
+      localStorageGetItem(LS_KEY_CONTACTS) ?? [
+        { id: 'id-1', name: 'Rosie Simpson', number: '459-12-56' },
+        { id: 'id-2', name: 'Hermione Kline', number: '443-89-12' },
+        { id: 'id-3', name: 'Eden Clements', number: '645-17-79' },
+        { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
+      ]
+    );
+  });
 
+  const [filter, setFilter] = useState('');
 
-    componentDidMount() {
-    const contacts = localStorage.getItem('contacts');
-    const savedContacts = JSON.parse(contacts);
+   useEffect(() => {
+    localStorageSetItem(LS_KEY_CONTACTS, contacts);
+  }, [contacts]);
 
-    if (savedContacts) {
-      this.setState({ contacts: savedContacts });
-    }
-  }
-
-  componentDidUpdate(prevProps, prevState) {
-    const nextContacts = this.state.contacts;
-    const prevContacts = prevState.contacts;
-
-    if (nextContacts !== prevContacts) {
-      localStorage.setItem('contacts', JSON.stringify(nextContacts));
-    }
-  }
-
-    formSubmitHemdler = contact => {
+const formSubmitHemdler = contact => {
         contact.id = nanoid();
-        const names = this.state.contacts.map(item => item.name)  
+        const names = contacts.map(item => item.name)  
         
        if (names.includes(contact.name)) {
       return Notify.warning(`${contact.name} is already in contacts`, {
         position: 'center-top',
       });
     }
-    this.setState(({ contacts }) => ({
-      contacts: [...contacts, contact],
-    }));
-
+    setContacts([...contacts, contact]);
     };
 
-    handlerChangeFilter = evt => {
-        const { name, value } = evt.currentTarget;
-
-        this.setState({ [name]: value.toLowerCase() });
+    const deleteContact = contactId => {
+      setContacts(praveState => {
+        return praveState.filter(contact => contact.id !== contactId)
+      });
     };
+  
 
-    filterContacts = () => {
-        return this.state.contacts.filter(contact => contact.name.toLowerCase().includes(this.state.filter));
+    
+  const handlerChangeFilter = evt => {
+    setFilter(evt.currentTarget.value);
+    filterContacts();
+  };
+   
+  const filterContacts = () => {
+     const normalizedFilter = filter.toLowerCase();
+        return contacts.filter(({name}) => name.toLowerCase().includes(normalizedFilter));
        
     };
 
-    deleteContact = contactId => {
-        this.setState({ contacts: this.state.contacts.filter(contact => contact.id !== contactId) });
-    };
-
-    render() {
-        const filterContacts = this.filterContacts();
+        const filtered = filterContacts();
 
         return (
             <Container>
                 <Title> Phonebook </Title>
 
-                <ContactForm onSubmit={this.formSubmitHemdler} />
+                <ContactForm onSubmit={formSubmitHemdler} />
                 <Title>Contacts</Title>
-                <Filter onChange={this.handlerChangeFilter} />
-                <ContactList contacts={filterContacts} onClick={this.deleteContact} />
+                <Filter onChange={handlerChangeFilter} />
+                <ContactList contacts={filtered} onClick={deleteContact} />
             </Container>
         );
-    }
+    
 }
 
-export default App;
+

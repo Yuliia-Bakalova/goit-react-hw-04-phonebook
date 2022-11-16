@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import { List, ListItem, Button } from './ContactList.styled';
 
-export function ContactList({ contacts, onClick }) {
+export const ContactList = ({ contacts, onClick }) => {
     return (
         <List>
             {contacts.map(contact => (
