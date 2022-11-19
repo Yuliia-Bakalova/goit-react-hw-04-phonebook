@@ -1,7 +1,9 @@
 export const localStorageGetItem = item => {
-  JSON.parse(localStorage.getItem(item));
+ const contactsList = JSON.parse(localStorage.getItem(item));
+  return contactsList;
 };
 
 export const localStorageSetItem = (key, item) => {
-  localStorage.setItem(key, JSON.stringify(item));
+   localStorage.setItem(key, JSON.stringify(item));
+  return;
 };
